@@ -1,0 +1,1 @@
+-record(snark_jokes, {jid,jlabel,joke,punchLine,author,addedby,dateAdded}).

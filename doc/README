@@ -1,0 +1,96 @@
+SnarkApp - the erlang-based snarkserver.
+Contents:
+   - Application Components
+   - Interacting via erlang cli
+   - Running in yaws 
+   - RESTful API
+
+Components:
+   - SnarkApp - The primary applicaiton
+   - SnarkServer - Responds to snark operations
+   - SnarkResponder - Responds to REST calls
+   - SnarkMon - Monitor for snarkserver.
+   - SnarkRespMon - Monitor for snarkResponder
+   - Snark_Sup - Supervisor monitor for the others (restarts the parts when it crashes or gets bad data)
+   - SnarkUtils - Uitilities for manipulating Snark as web objects
+   - SnarkDB - methods for interacting with snark_jokes mnesia tables.
+   - SnarkWrapper - wrapper for snarkapp and yaws
+
+Starting Snark Application:
+    application:start(snarkapp).
+
+Installing mnesia tables:
+    snarkapp:install([node()]).
+
+Uninstalling tables (warning, deletes all data!):
+    snarkapp:uninstall([node()]).
+
+Getting snark from the erlang shell:
+    SnarkRecord = snarkapp:getsnark(id) = snarkserver:get(id)
+    SnarkRecord = snarkapp:getsnark("title") = snarkserver:get("title")
+
+Putting snark:
+    snarkapp:putsnark(title,joke,punchline,author,addedby)
+    snarkapp:putsnark(Title,Joke,Punchline) = snarkapp:putsnark(Title,Joke,Punchline,"unknown","unknown")
+
+Updating snark:
+    snarkapp:updatesnark(Id, {Title,JokeLine,Puncline,Author,AddedBy})
+
+Delete:
+    snarkapp:delsnark(Id)
+
+Running in YAWS:
+
+    Update yaws.conf - 
+        Add "include_dir = path/to/snarkapp/include"
+        Add "ebin_dir = path/to/snarkapp/ebin"
+        Add "runmod = snarkwrapper"
+     Update server in yaws.conf:
+        <server localhost>
+            port = 8080
+            listen = 0.0.0.0
+            docroot = /tmp
+            dir_listings = true
+            auth_log = true
+            statistics = true
+            appmods = </, snarkapp>
+        </server>   
+
+     cd to /path/to/snarkapp/ebin
+     # yaws
+
+RESTFUL API
+    METHOD URI[.extension] 
+
+GET / 
+    Same as GET /latest
+GET /latest 
+    Same as GET /latest.json
+GET /latest.json
+    Returns the latest snark in JSON 
+GET /latest.xml 
+    Returns the latest snark in xml
+GET /id[.json,.xml]
+    Returns snark by ID, defaults to JSON if no extention is specified
+GET /title
+    Works like id, but by joke title
+GET /all[.json,xml]
+    Gets all jokes, defaults to JSON
+PUT /id
+    Same as PUT /id.json
+PUT /id.json
+    Updates snark[id] with the body of the request in JSON format 
+    Example:
+    PUT /9 [{"title":"Title Of Joke","jokeline":"Joke line","punchline":"Punch Line","author":"Your Name Here","addedby":"Your username"}]
+PUT /id.xml
+    Not supported - will return {error,unsupported_parser}
+POST / 
+    Same as POST /.json
+POST /.json
+    Creates a new snark from JSON
+POST /.xml 
+    Not supported - will return {error,unsupported_parser}
+DELETE /id
+    Deletes the snark at ID
+DELETE / 
+    Throws an undef error.
