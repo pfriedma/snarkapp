@@ -127,14 +127,26 @@
 		[{status,201},{ehtml,yaws_api:f("Title: ~s<br/>Joke: ~s<br/>Punchline: ~s<br/>Author: ~s<br/>AddedBy:~s<br/>",[Title,Joke,Punchline,Author,AddedBy])}].
 
     outJson(Arg) ->
-		Snark = snarkutils:snarkReq(path(Arg)),
-        Json = snarkutils:snark_to_json(snarkapp:getsnark(Snark)),
-		{content, "application/json", Json}.
-
+		SnarkReq = snarkutils:snarkReq(path(Arg)),
+		Snark = snarkapp:getsnark(SnarkReq),
+		if 
+			length(Snark)>0 ->
+				Json = snarkutils:snark_to_json(Snark),
+				{content, "application/json", Json};
+            true ->
+				[{status,404}]
+        end.
     outXml(Arg) ->
-        Snark = snarkutils:snarkReq(path(Arg)),
-        Xml = snarkutils:snark_to_xml(snarkapp:getsnark(Snark)),
-        {content, "application/xml", Xml}.
+        SnarkReq = snarkutils:snarkReq(path(Arg)),
+	    Snark = snarkapp:getsnark(SnarkReq),
+		if
+			 length(Snark)>0 ->
+				Xml = snarkutils:snark_to_xml(Snark),
+       		 	{content, "application/xml", Xml};
+			true ->
+				[{status,404}]
+		end.
+        
 
     
     
